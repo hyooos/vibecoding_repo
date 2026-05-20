@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wine Model Performance Dashboard</title>
+  <style>
+    :root {
+      --bg: #f6f3ee;
+      --panel: #fffdf9;
+      --panel-soft: #f9f3ea;
+      --ink: #1e1d1a;
+      --muted: #625d54;
+      --line: rgba(53, 44, 31, 0.12);
+      --accent: #c76834;
+      --accent-2: #2e7d6b;
+      --accent-3: #f0a44a;
+      --accent-4: #7f5af0;
+      --danger: #c94747;
+      --shadow: 0 18px 42px rgba(71, 52, 27, 0.10);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Pretendard", "Noto Sans KR", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(199, 104, 52, 0.16), transparent 26%),
+        radial-gradient(circle at top right, rgba(46, 125, 107, 0.12), transparent 24%),
+        linear-gradient(180deg, #f7f1e7 0%, #f2ede6 100%);
+    }
+
+    .wrap {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 28px 0 40px;
+    }
+
+    .hero,
+    .grid-2,
+    .grid-3 {
+      display: grid;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .hero {
+      grid-template-columns: 1.35fr 0.95fr;
+    }
+
+    .grid-2 {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .card {
+      background: rgba(255, 253, 249, 0.9);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .hero-main {
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-main::after {
+      content: "";
+      position: absolute;
+      right: -50px;
+      bottom: -70px;
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(199, 104, 52, 0.17), transparent 66%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(199, 104, 52, 0.12);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 16px 0 10px;
+      font-size: clamp(32px, 5vw, 54px);
+      line-height: 1.02;
+      letter-spacing: -0.05em;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.75;
+      font-size: 16px;
+      max-width: 720px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 22px;
+    }
+
+    .mini {
+      background: rgba(255, 255, 255, 0.62);
+      border: 1px solid rgba(53, 44, 31, 0.08);
+      border-radius: 18px;
+      padding: 16px 18px;
+    }
+
+    .mini-label {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+      display: block;
+      font-weight: 700;
+    }
+
+    .mini-value {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .section-kicker {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .section-title {
+      margin: 0 0 14px;
+      font-size: 24px;
+      letter-spacing: -0.03em;
+    }
+
+    .metric-stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .metric {
+      padding: 16px 18px;
+      background: var(--panel-soft);
+      border-radius: 18px;
+      border: 1px solid rgba(53, 44, 31, 0.06);
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 30px;
+      margin-top: 6px;
+      letter-spacing: -0.04em;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .metric p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .split-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(46, 125, 107, 0.10);
+      color: var(--accent-2);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .note {
+      margin: 12px 0 0;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(255, 255, 255, 0.58);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    th,
+    td {
+      padding: 14px 12px;
+      border-bottom: 1px solid rgba(53, 44, 31, 0.08);
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .bars {
+      display: grid;
+      gap: 18px;
+    }
+
+    .bar-group {
+      display: grid;
+      gap: 10px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 88px 72px 1fr 48px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .bar-class {
+      font-weight: 800;
+    }
+
+    .bar-metric {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .bar-track {
+      height: 14px;
+      background: rgba(53, 44, 31, 0.08);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: var(--value);
+      border-radius: inherit;
+    }
+
+    .legend {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .legend i {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+    }
+
+    .matrix {
+      display: grid;
+      gap: 8px;
+    }
+
+    .matrix-grid {
+      display: grid;
+      grid-template-columns: 80px repeat(3, 1fr);
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .matrix-axis,
+    .matrix-cell {
+      border-radius: 16px;
+      padding: 12px;
+      min-height: 76px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+    }
+
+    .matrix-axis {
+      background: rgba(46, 125, 107, 0.08);
+      color: var(--accent-2);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .matrix-cell {
+      border: 1px solid rgba(53, 44, 31, 0.06);
+      color: #fff;
+      font-weight: 800;
+      line-height: 1.3;
+    }
+
+    .matrix-cell small {
+      display: block;
+      font-size: 12px;
+      opacity: 0.92;
+      font-weight: 600;
+    }
+
+    .interpret-list,
+    .feature-list {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 10px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .loading,
+    .error {
+      padding: 18px;
+      border-radius: 18px;
+      font-weight: 700;
+    }
+
+    .loading {
+      background: rgba(240, 164, 74, 0.14);
+      color: #8a5c13;
+    }
+
+    .error {
+      background: rgba(201, 71, 71, 0.12);
+      color: var(--danger);
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .grid-2,
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+
+      .meta-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .wrap {
+        width: min(100% - 18px, 1180px);
+        padding-top: 18px;
+      }
+
+      .card,
+      .hero-main {
+        padding: 20px;
+      }
+
+      .split-grid,
+      .bar-row,
+      .matrix-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap" id="app">
+    <div class="loading">results.json을 읽어 대시보드를 생성하는 중입니다...</div>
+  </main>
+
+  <script>
+    const RESULTS_PATH = "./results.json";
+
+    function pct(value) {
+      return (value * 100).toFixed(2) + "%";
+    }
+
+    function fixed(value) {
+      return Number(value).toFixed(4);
+    }
+
+    function metricFixed(value) {
+      return Number(value).toFixed(3);
+    }
+
+    function matrixColor(value, maxValue) {
+      const ratio = maxValue === 0 ? 0 : value / maxValue;
+      const lightness = 88 - ratio * 44;
+      return `hsl(165 45% ${lightness}%)`;
+    }
+
+    function textColor(value, maxValue) {
+      const ratio = maxValue === 0 ? 0 : value / maxValue;
+      return ratio > 0.45 ? "#ffffff" : "#21312d";
+    }
+
+    function renderDashboard(results) {
+      const app = document.getElementById("app");
+      const cv = results.cross_validation;
+      const testEval = results.test_evaluation;
+      const oofEval = results.oof_evaluation;
+      const report = testEval.classification_report;
+      const classNames = results.class_names;
+      const featurePreview = results.feature_names.slice(0, 6).join(", ");
+      const trainRatio = ((results.train_size / results.n_samples_total) * 100).toFixed(1);
+      const testRatio = ((results.test_size / results.n_samples_total) * 100).toFixed(1);
+      const cvMean = cv.mean_accuracy;
+      const cvStd = cv.std_accuracy;
+      const testAcc = testEval.accuracy;
+      const gap = testAcc - cvMean;
+      const absGap = Math.abs(gap);
+      const confusion = testEval.confusion_matrix;
+      const matrixMax = Math.max(...confusion.flat());
+
+      let overfitText = "테스트 정확도가 교차검증 평균보다 약간 낮아 현재 결과만 보면 뚜렷한 과적합 신호는 크지 않습니다.";
+      if (gap > 0.02) {
+        overfitText = "테스트 정확도가 교차검증 평균보다 높지만 데이터셋이 작아 분할 운의 영향을 받을 수 있으므로 과적합 여부를 단정하기는 어렵습니다.";
+      } else if (gap < -0.02) {
+        overfitText = "테스트 정확도가 교차검증 평균보다 눈에 띄게 낮아 특정 분할에 대한 일반화 편차 가능성을 확인할 필요가 있습니다.";
+      }
+
+      let reliabilityText = "교차검증 평균과 테스트 성능 차이가 작고 표준편차도 크지 않아 모델 성능 신뢰도는 비교적 높은 편입니다.";
+      if (absGap > cvStd) {
+        reliabilityText = "테스트 성능과 교차검증 평균 차이가 표준편차보다 커서 성능 안정성을 추가로 검증하는 편이 좋습니다.";
+      }
+
+      const interpretations = [
+        `${overfitText} 현재 차이는 ${fixed(gap)}p이며, 교차검증 평균 ${fixed(cvMean)} 대비 테스트 정확도는 ${fixed(testAcc)}입니다.`,
+        `교차검증 표준편차는 ${fixed(cvStd)}로 큰 변동은 아니지만, Wine 데이터셋 자체가 178개로 작아 성능 수치가 다소 낙관적으로 보일 가능성은 남아 있습니다.`,
+        `${reliabilityText} 특히 테스트 confusion matrix에서 class_2가 class_1로 1건 오분류되어 두 클래스 경계가 상대적으로 더 까다로울 수 있음을 보여줍니다.`,
+        "추가 개선 방향으로는 더 많은 데이터 확보, 정규화 기반 선형 모델 외에 SVM·RandomForest·XGBoost 같은 다른 모델 비교, 하이퍼파라미터 튜닝, 반복 실험 확대를 제안할 수 있습니다."
+      ];
+
+      const classRows = classNames.map((name) => {
+        const item = report[name];
+        return `
+          <tr>
+            <td><strong>${name}</strong></td>
+            <td>${metricFixed(item.precision)}</td>
+            <td>${metricFixed(item.recall)}</td>
+            <td>${metricFixed(item["f1-score"])}</td>
+            <td>${item.support}</td>
+          </tr>
+        `;
+      }).join("");
+
+      const barRows = classNames.map((name) => {
+        const item = report[name];
+        return `
+          <div class="bar-group">
+            <div class="bar-row">
+              <div class="bar-class">${name}</div>
+              <div class="bar-metric">Precision</div>
+              <div class="bar-track"><div class="bar-fill" style="--value:${item.precision * 100}%;background:var(--accent);"></div></div>
+              <div>${metricFixed(item.precision)}</div>
+            </div>
+            <div class="bar-row">
+              <div></div>
+              <div class="bar-metric">Recall</div>
+              <div class="bar-track"><div class="bar-fill" style="--value:${item.recall * 100}%;background:var(--accent-2);"></div></div>
+              <div>${metricFixed(item.recall)}</div>
+            </div>
+            <div class="bar-row">
+              <div></div>
+              <div class="bar-metric">F1-score</div>
+              <div class="bar-track"><div class="bar-fill" style="--value:${item["f1-score"] * 100}%;background:var(--accent-3);"></div></div>
+              <div>${metricFixed(item["f1-score"])}</div>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      const matrixHeader = classNames.map((name) => `<div class="matrix-axis">Pred<br>${name}</div>`).join("");
+      const matrixRows = confusion.map((row, i) => {
+        const rowTotal = row.reduce((a, b) => a + b, 0) || 1;
+        const cells = row.map((value) => {
+          const bg = matrixColor(value, matrixMax);
+          const fg = textColor(value, matrixMax);
+          return `<div class="matrix-cell" style="background:${bg};color:${fg};">${value}<small>${pct(value / rowTotal)}</small></div>`;
+        }).join("");
+        return `
+          <div class="matrix-grid">
+            <div class="matrix-axis">True<br>${classNames[i]}</div>
+            ${cells}
+          </div>
+        `;
+      }).join("");
+
+      const interpretItems = interpretations.map((text) => `<li>${text}</li>`).join("");
+
+      app.innerHTML = `
+        <section class="hero">
+          <article class="card hero-main">
+            <span class="eyebrow">ML Dashboard</span>
+            <h1>Wine Classification<br>Performance Review</h1>
+            <p class="subtitle">
+              results.json 기반으로 생성한 발표용 단일 페이지 대시보드입니다.
+              Logistic Regression과 StandardScaler 조합으로 Wine 데이터셋을 분류했고,
+              교차검증과 테스트 성능을 함께 비교해 모델의 일반화 성능을 해석했습니다.
+            </p>
+            <div class="meta-grid">
+              <div class="mini">
+                <span class="mini-label">데이터셋</span>
+                <div class="mini-value">${results.dataset}</div>
+              </div>
+              <div class="mini">
+                <span class="mini-label">모델</span>
+                <div class="mini-value" style="font-size:20px;">Logistic Regression</div>
+              </div>
+              <div class="mini">
+                <span class="mini-label">Feature 수</span>
+                <div class="mini-value">${results.n_features}</div>
+              </div>
+            </div>
+          </article>
+
+          <article class="card">
+            <p class="section-kicker">핵심 지표</p>
+            <h2 class="section-title">교차검증과 테스트 결과 요약</h2>
+            <div class="metric-stack">
+              <div class="metric">
+                <span>Cross Validation Mean</span>
+                <strong>${pct(cvMean)}</strong>
+                <p>RepeatedStratifiedKFold ${cv.n_splits} folds x ${cv.n_repeats} repeats</p>
+              </div>
+              <div class="metric">
+                <span>Cross Validation Std</span>
+                <strong>${pct(cvStd)}</strong>
+                <p>분할별 성능 변동 폭을 보여주는 표준편차입니다.</p>
+              </div>
+              <div class="metric">
+                <span>Test Accuracy</span>
+                <strong>${pct(testAcc)}</strong>
+                <p>교차검증 평균과의 차이: ${fixed(gap)}</p>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="grid-3">
+          <article class="card">
+            <p class="section-kicker">모델 개요</p>
+            <h2 class="section-title">실험 설정</h2>
+            <p class="note"><span class="chip">전체 샘플 ${results.n_samples_total}</span></p>
+            <ul class="feature-list">
+              <li>데이터셋: ${results.dataset}</li>
+              <li>모델: ${results.model_name}</li>
+              <li>특성 수: ${results.n_features}개</li>
+              <li>대표 feature: ${featurePreview}, ...</li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <p class="section-kicker">데이터 분할</p>
+            <h2 class="section-title">Train / Test Split</h2>
+            <div class="split-grid">
+              <div class="metric">
+                <span>Train Size</span>
+                <strong>${results.train_size}</strong>
+                <p>전체의 ${trainRatio}%</p>
+              </div>
+              <div class="metric">
+                <span>Test Size</span>
+                <strong>${results.test_size}</strong>
+                <p>전체의 ${testRatio}%</p>
+              </div>
+            </div>
+            <p class="note">random_state=${results.random_state}, stratified split을 사용해 클래스 비율을 유지했습니다.</p>
+          </article>
+
+          <article class="card">
+            <p class="section-kicker">신뢰도 평가</p>
+            <h2 class="section-title">Generalization Check</h2>
+            <div class="metric-stack">
+              <div class="metric">
+                <span>OOF Accuracy</span>
+                <strong>${pct(oofEval.classification_report.accuracy)}</strong>
+                <p>학습 데이터의 out-of-fold 예측 기준 정확도</p>
+              </div>
+            </div>
+            <p class="note">교차검증 평균 ${pct(cvMean)}와 테스트 정확도 ${pct(testAcc)}가 가깝기 때문에 현재 조건에서는 일반화 성능이 안정적인 편으로 해석할 수 있습니다.</p>
+          </article>
+        </section>
+
+        <section class="grid-2">
+          <article class="card">
+            <p class="section-kicker">분류 리포트</p>
+            <h2 class="section-title">클래스별 Precision / Recall / F1-score</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Class</th>
+                  <th>Precision</th>
+                  <th>Recall</th>
+                  <th>F1-score</th>
+                  <th>Support</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${classRows}
+              </tbody>
+            </table>
+            <p class="note">
+              Macro Avg: ${metricFixed(report["macro avg"].precision)} / ${metricFixed(report["macro avg"].recall)} / ${metricFixed(report["macro avg"]["f1-score"])}
+            </p>
+          </article>
+
+          <article class="card">
+            <p class="section-kicker">성능 비교</p>
+            <h2 class="section-title">Bar Chart</h2>
+            <div class="legend">
+              <span><i style="background:var(--accent);"></i>Precision</span>
+              <span><i style="background:var(--accent-2);"></i>Recall</span>
+              <span><i style="background:var(--accent-3);"></i>F1-score</span>
+            </div>
+            <div class="bars">
+              ${barRows}
+            </div>
+          </article>
+        </section>
+
+        <section class="grid-2">
+          <article class="card">
+            <p class="section-kicker">시각화</p>
+            <h2 class="section-title">Test Confusion Matrix</h2>
+            <div class="matrix">
+              <div class="matrix-grid">
+              <div class="matrix-axis"></div>
+                ${matrixHeader}
+              </div>
+              ${matrixRows}
+            </div>
+            <p class="note">대각선 값이 높을수록 올바르게 분류한 샘플이 많다는 의미입니다. 이번 테스트에서는 class_2 -> class_1 오분류가 1건 발생했습니다.</p>
+          </article>
+
+          <article class="card">
+            <p class="section-kicker">해석</p>
+            <h2 class="section-title">Result Interpretation</h2>
+            <ul class="interpret-list">
+              ${interpretItems}
+            </ul>
+          </article>
+        </section>
+      `;
+    }
+
+    function renderError(message, error) {
+      const app = document.getElementById("app");
+      console.error("[dashboard] " + message, error);
+      app.innerHTML = `
+        <div class="error">
+          ${message}<br>
+          같은 폴더의 results.json이 로컬 서버에서 정상 제공되는지 확인하세요.<br>
+          예: http://localhost:8000/results.json
+        </div>
+      `;
+    }
+
+    async function loadDashboard() {
+      try {
+        const response = await fetch(RESULTS_PATH, {
+          cache: "no-store"
+        });
+
+        if (!response.ok) {
+          throw new Error("results.json 요청 실패: HTTP " + response.status);
+        }
+
+        const results = await response.json();
+        renderDashboard(results);
+      } catch (error) {
+        renderError("results.json을 불러오지 못했습니다.", error);
+      }
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", loadDashboard);
+    } else {
+      loadDashboard();
+    }
+  </script>
+</body>
+</html>
