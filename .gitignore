@@ -1,3 +1,12 @@
+<<<<<<< HEAD
 *.pem
 node_modules/
 .env
+=======
+.DS_Store
+__pycache__/
+*.pyc
+.DS_Store
+__pycache__/
+*.pyc
+>>>>>>> 7a9d51479874b752df1ebd068906b47f81c2973f
