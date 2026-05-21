@@ -1,4 +1,4 @@
-# 🍊 BITAmin Regular Session
+# 🍊 BITAmin Spring Regular Session
 
 > 비타민 정규 세션에서 진행한 실습 자료를 아카이빙한 저장소입니다.
 
