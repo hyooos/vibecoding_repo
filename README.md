@@ -33,6 +33,21 @@
 
 ---
 
+## Repository Structure
+
+```bash
+BITAmin-Spring-Regular-Session
+├── codex-dashboard-demo/ # Dashboard demo
+├── codex-readme-demo/    # README automation demo
+├── docker-demo/          # Docker practice
+├── model-api/            # FastAPI model serving
+├── rag_ws/               # RAG workflow practice
+├── .gitignore
+└── README.md
+```
+
+---
+
 ## Tech Stack
 
 <p align="left">
